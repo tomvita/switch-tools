@@ -373,6 +373,16 @@ int CreateNpdm(const char *json, void **dst, u32 *dst_size) {
         header.MmuFlags |= ((disable_device_address_space_merge & 1) << 5);
     }
 
+    int enable_alias_region_extra_size; // optional
+    if (cJSON_GetBoolean(npdm_json, "enable_alias_region_extra_size", &enable_alias_region_extra_size)) {
+        header.MmuFlags |= ((enable_alias_region_extra_size & 1) << 6);
+    }
+
+    int prevent_code_reads; // optional
+    if (cJSON_GetBoolean(npdm_json, "prevent_code_reads", &prevent_code_reads)) {
+        header.MmuFlags |= ((prevent_code_reads & 1) << 7);
+    }
+
     u8 signature_key_generation; // optional
     if (cJSON_GetU8(npdm_json, "signature_key_generation", &signature_key_generation)) {
         header.SignatureKeyGeneration = signature_key_generation;
@@ -819,6 +829,7 @@ int CreateNpdm(const char *json, void **dst, u32 *dst_size) {
             }
             int allow_debug = 0;
             int force_debug = 0;
+            int force_debug_prod = 0;
             if (!cJSON_GetBoolean(value, "allow_debug", &allow_debug)) {
                 status = 0;
                 goto NPDM_BUILD_END;
@@ -827,7 +838,11 @@ int CreateNpdm(const char *json, void **dst, u32 *dst_size) {
                 status = 0;
                 goto NPDM_BUILD_END;
             }
-            desc = (allow_debug & 1) | ((force_debug & 1) << 1);
+            if (!cJSON_GetBoolean(value, "force_debug_prod", &force_debug_prod)) {
+                status = 0;
+                goto NPDM_BUILD_END;
+            }
+            desc = (allow_debug & 1) | ((force_debug_prod & 1) << 1) | ((force_debug & 1) << 2);
             caps[cur_cap++] = (u32)((desc << 17) | (0xFFFF));
         }
     }
