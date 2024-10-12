@@ -20,7 +20,7 @@ typedef uint8_t u8;
 #pragma pack(push, 1)
 typedef struct {
     u8 Version;
-    u8 CoiCount;
+    u8 CoiCount; 
     u8 SdoiCount;
     u8 pad;
     u64 Perms;
